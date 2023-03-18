@@ -1,0 +1,4 @@
+rootProject.name = 'spring-session-dynamodb'
+include 'spring-session-dynamodb'
+include 'spring-session-dynamodb-spring-boot-autoconfigure'
+include 'spring-session-dynamodb-spring-boot-starter'

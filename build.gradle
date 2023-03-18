@@ -1,0 +1,118 @@
+buildscript {
+	ext {
+		set('springVersion', '5.2.7.RELEASE')
+		set('springBootVersion', '2.3.1.RELEASE')
+		set('springSessionVersion', 'Dragonfruit-SR3')
+		set('awsSdkVersion', '1.11.772')
+		set('lombokVersion', '1.18.10')
+	}
+	repositories {
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+	}
+	dependencies {
+		classpath "io.spring.gradle:dependency-management-plugin:1.1.0"
+		classpath "org.springframework.boot:spring-boot-gradle-plugin:2.3.1.RELEASE"
+	}
+}
+
+subprojects {
+	apply plugin: 'java'
+	apply plugin: 'idea'
+	apply plugin: "io.spring.dependency-management"
+
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework:spring-framework-bom:${springVersion}"
+			mavenBom "org.springframework.session:spring-session-bom:${springSessionVersion}"
+			mavenBom "com.amazonaws:aws-java-sdk-bom:${awsSdkVersion}"
+		}
+	}
+
+	group = 'io.disc99'
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
+
+	repositories {
+		mavenCentral()
+	}
+
+	task sourceJar(type: Jar) {
+		from sourceSets.main.allJava
+	}
+}
+
+project(':spring-session-dynamodb') {
+	apply plugin: 'java-library'
+	apply plugin: 'maven-publish'
+
+	dependencies {
+		api "org.springframework:spring-context-support"
+		api "org.springframework:spring-jcl"
+		api "org.springframework.session:spring-session-core"
+		implementation "com.amazonaws:aws-java-sdk-dynamodb"
+		implementation "org.slf4j:slf4j-api:1.7.30"
+		annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+		implementation "org.projectlombok:lombok:${lombokVersion}"
+	}
+
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				from components.java
+				artifact sourceJar {
+					classifier "sources"
+				}
+			}
+		}
+	}
+}
+
+project(':spring-session-dynamodb-spring-boot-autoconfigure') {
+	apply plugin: 'maven-publish'
+	apply plugin: "org.springframework.boot"
+
+	dependencies {
+		implementation project(':spring-session-dynamodb')
+		implementation "org.springframework.boot:spring-boot-starter"
+		annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+		implementation "com.amazonaws:aws-java-sdk-dynamodb"
+		annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+		implementation "org.projectlombok:lombok:${lombokVersion}"
+	}
+
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				from components.java
+				artifact sourceJar {
+					classifier "sources"
+				}
+			}
+		}
+	}
+}
+
+project(':spring-session-dynamodb-spring-boot-starter') {
+	apply plugin: 'java-library'
+	apply plugin: 'maven-publish'
+	apply plugin: "org.springframework.boot"
+
+	dependencies {
+		api project(':spring-session-dynamodb')
+		implementation project(':spring-session-dynamodb-spring-boot-autoconfigure')
+	}
+
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				from components.java
+				artifact sourceJar {
+					classifier "sources"
+				}
+			}
+		}
+	}
+}
+
